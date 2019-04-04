@@ -109,11 +109,11 @@ public class BookPageView extends View {
         float kY = (cornerPoint.y + hY) / 2;
 
         //c点
-        float cX = (float) (fX - ((fX - cornerPoint.x) + Math.pow(cornerPoint.y, 2) / (4 * (fX - mX))) * 3 / 2);
+        float cX = eX - (fX-eX)/2;
         float cY = fY;
         //j点
         float jX = fX;
-        float jY = (fX - cX) * (fY - hY) / (fX - eX);
+        float jY = hY - (fY-hY)/2;
         //d点
         float dX = ((cX + bX) / 2 + eX) / 2;
         float dY = ((cY + bY) / 2 + eY) / 2;
