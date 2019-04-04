@@ -32,7 +32,14 @@ public class BookPageView extends View {
     private int screenWidth;
     private int screenHeight;
 
-    private Path path;
+    /**
+     * 正面路径
+     */
+    private Path frontPath;
+    /**
+     * 反面路径
+     */
+    private Path backPath;
 
     public BookPageView(Context context) {
         this(context, null);
@@ -51,8 +58,10 @@ public class BookPageView extends View {
         frontPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         frontPaint.setColor(Color.GREEN);
         backPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        backPaint.setColor(Color.YELLOW);
         cornerPoint = new Point();
-        path = new Path();
+        frontPath = new Path();
+        backPath = new Path();
     }
 
     @Override
@@ -135,17 +144,24 @@ public class BookPageView extends View {
         Log.e("坐标", "I:x=" + iX + "y=" + iY);
 
 
-        path.reset();
-        path.lineTo(0, screenHeight);
-        path.lineTo(cX, cY);
-        path.quadTo(eX, eY, bX, bY);
-        path.lineTo(cornerPoint.x, cornerPoint.y);
-        path.lineTo(kX, kY);
-        path.quadTo(hX, hY, jX, jY);
-        path.lineTo(screenWidth, 0);
-        path.close();
+        frontPath.reset();
+        frontPath.lineTo(0, screenHeight);
+        frontPath.lineTo(cX, cY);
+        frontPath.quadTo(eX, eY, bX, bY);
+        frontPath.lineTo(cornerPoint.x, cornerPoint.y);
+        frontPath.lineTo(kX, kY);
+        frontPath.quadTo(hX, hY, jX, jY);
+        frontPath.lineTo(screenWidth, 0);
+        frontPath.close();
+        canvas.drawPath(frontPath, frontPaint);
 
-        canvas.drawPath(path, frontPaint);
-
+        backPath.reset();
+        backPath.moveTo(cX,cY);
+        backPath.quadTo(eX,eY,bX,bY);
+        backPath.lineTo(cornerPoint.x,cornerPoint.y);
+        backPath.lineTo(kX,kY);
+        backPath.quadTo(hX,hY,jX,jY);
+        backPath.close();
+        canvas.drawPath(backPath,backPaint);
     }
 }
