@@ -1,0 +1,92 @@
+apply plugin: 'com.android.application'
+
+android {
+    signingConfigs {
+        lucky_123 {
+            keyAlias 'lucky_y'
+            keyPassword 'lucky_123'
+            storeFile file('/Users/zhoumohan/AndroidStudioProjects/LuckyMorning/app/luckmorning.jks')
+            storePassword 'lucky_123'
+        }
+    }
+
+    compileSdkVersion 27
+    defaultConfig {
+        applicationId "com.example.zhoumohan.luckymorning"
+        minSdkVersion 19
+        targetSdkVersion 27
+        versionCode 2
+        versionName "2.0"
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+
+        //将svg图片生成指定维度的png图片（5.0界限）
+        //vectorDrawables.generatedDensities('mdpi','xhdpi','xxhdpi')
+        //使用support-v7兼容
+        //vectorDrawables.useSupportLibrary = true
+
+        //只保留指定和默认的资源
+        resConfigs('zh-rCN')
+
+        //配置so库框架（arm：真机）
+        ndk {
+            moduleName 'native-lib'
+            abiFilters('arm64-v8a', 'armeabi-v7a', 'x86')
+        }
+
+        externalNativeBuild {
+            cmake {
+                cppFlags ""
+            }
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+        debug {
+            minifyEnabled false
+            //启动资源压缩
+            //shrinkResources true
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    //jni开发环境配置
+    sourceSets {
+        main {
+            jniLibs.srcDirs = ['libs']
+        }
+    }
+
+    externalNativeBuild {
+        cmake {
+            path "src/main/cpp/CMakeLists.txt"
+        }
+    }
+}
+
+dependencies {
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
+    implementation 'com.android.support:appcompat-v7:27.1.1'
+    implementation 'com.android.support:design:27.1.1'
+    implementation 'com.android.support.constraint:constraint-layout:1.1.3'
+    testImplementation 'junit:junit:4.12'
+    androidTestImplementation 'com.android.support.test:runner:1.0.2'
+    androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
+    implementation 'com.android.support:support-v4:27.1.1'
+    implementation 'com.android.support:design:27.1.1'
+    implementation 'devlight.io:navigationtabbar:1.2.5'
+    implementation 'com.squareup.okhttp:okhttp:2.7.2'
+    implementation 'com.google.code.gson:gson:2.2.4'
+    implementation 'com.github.CymChad:BaseRecyclerViewAdapterHelper:2.9.22'
+    implementation 'com.jakewharton:butterknife:8.8.1'
+    annotationProcessor 'com.jakewharton:butterknife-compiler:8.8.1'
+    implementation 'com.flyco.tablayout:FlycoTabLayout_Lib:2.1.2@aar'
+    implementation 'com.gordonwong:material-sheet-fab:1.2.1'
+    implementation 'com.android.support:cardview-v7:27.1.1'
+    implementation 'com.google.zxing:core:3.3.3'
+    implementation project(':common_library')
+    implementation files('libs/qrcode.jar')
+}
