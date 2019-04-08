@@ -2,16 +2,23 @@ package com.example.zhoumohan.ancient.common.widget;
 
 import android.animation.ValueAnimator;
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Path;
+import android.graphics.PorterDuff;
+import android.graphics.PorterDuffXfermode;
+import android.graphics.Region;
 import android.support.annotation.Nullable;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.animation.AccelerateInterpolator;
+
+import com.example.zhoumohan.ancient.R;
 
 public class BookPageView extends View {
 
@@ -69,6 +76,8 @@ public class BookPageView extends View {
      */
     private float touchDownX, touchDownY;
 
+
+    private Bitmap bitmap;
     public BookPageView(Context context) {
         this(context, null);
     }
@@ -83,8 +92,10 @@ public class BookPageView extends View {
     }
 
     private void init() {
+        bitmap = BitmapFactory.decodeResource(getContext().getResources(), R.drawable.bg_pager);
+
         aPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        aPaint.setColor(Color.GREEN);
+        //aPaint.setColor(Color.GREEN);
         bPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         bPaint.setColor(Color.BLUE);
         cPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
@@ -92,6 +103,8 @@ public class BookPageView extends View {
         aPath = new Path();
         bPath = new Path();
         cPath = new Path();
+
+        setLayerType(View.LAYER_TYPE_SOFTWARE, null);
     }
 
     @Override
@@ -149,8 +162,6 @@ public class BookPageView extends View {
         }
         return true;
     }
-
-
 
     /**
      * 划分触摸区域
@@ -247,6 +258,8 @@ public class BookPageView extends View {
 
     @Override
     protected void onDraw(Canvas canvas) {
+
+        canvas.drawBitmap(bitmap, 0, 0, aPaint);
         //g点
         gX = (aX + fX) / 2;
         gY = (aY + fY) / 2;
@@ -280,18 +293,18 @@ public class BookPageView extends View {
         iX = ((jX + kX) / 2 + hX) / 2;
         iY = ((jY + kY) / 2 + hY) / 2;
 
-        Log.e("坐标", "A:x=" + aX + "y=" + aY);
-        Log.e("坐标", "F:x=" + fX + "y=" + fY);
-        Log.e("坐标", "G:x=" + gX + "y=" + gY);
-        Log.e("坐标", "M:x=" + mX + "y=" + mY);
-        Log.e("坐标", "E:x=" + eX + "y=" + eY);
-        Log.e("坐标", "H:x=" + hX + "y=" + hY);
-        Log.e("坐标", "B:x=" + bX + "y=" + bY);
-        Log.e("坐标", "K:x=" + kX + "y=" + kY);
-        Log.e("坐标", "C:x=" + cX + "y=" + cY);
-        Log.e("坐标", "J:x=" + jX + "y=" + jY);
-        Log.e("坐标", "D:x=" + dX + "y=" + dY);
-        Log.e("坐标", "I:x=" + iX + "y=" + iY);
+//        Log.e("坐标", "A:x=" + aX + "y=" + aY);
+//        Log.e("坐标", "F:x=" + fX + "y=" + fY);
+//        Log.e("坐标", "G:x=" + gX + "y=" + gY);
+//        Log.e("坐标", "M:x=" + mX + "y=" + mY);
+//        Log.e("坐标", "E:x=" + eX + "y=" + eY);
+//        Log.e("坐标", "H:x=" + hX + "y=" + hY);
+//        Log.e("坐标", "B:x=" + bX + "y=" + bY);
+//        Log.e("坐标", "K:x=" + kX + "y=" + kY);
+//        Log.e("坐标", "C:x=" + cX + "y=" + cY);
+//        Log.e("坐标", "J:x=" + jX + "y=" + jY);
+//        Log.e("坐标", "D:x=" + dX + "y=" + dY);
+//        Log.e("坐标", "I:x=" + iX + "y=" + iY);
 
 
         switch (currentArea) {
@@ -371,6 +384,9 @@ public class BookPageView extends View {
         aPath.lineTo(screenWidth, 0);
         aPath.close();
         canvas.drawPath(aPath, aPaint);
+
+       // aPaint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.SRC_IN));
+        canvas.drawBitmap(bitmap, 0, 0, aPaint);
     }
 
     private void pathC(Canvas canvas) {
@@ -392,6 +408,4 @@ public class BookPageView extends View {
         bPath.close();
         canvas.drawPath(bPath,bPaint);
     }
-
-
 }
