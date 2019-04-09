@@ -12,13 +12,16 @@ import android.graphics.PorterDuff;
 import android.graphics.PorterDuffXfermode;
 import android.graphics.Region;
 import android.support.annotation.Nullable;
+import android.text.Layout;
+import android.text.StaticLayout;
+import android.text.TextPaint;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.animation.AccelerateInterpolator;
 
 import com.example.zhoumohan.ancient.R;
+import com.example.zhoumohan.ancient.util.BitmapUtil;
 
 public class BookPageView extends View {
 
@@ -38,9 +41,9 @@ public class BookPageView extends View {
     private static int currentArea = -1;
 
     /**
-     * 正面画笔
+     * 文字画笔
      */
-    private Paint aPaint;
+    private TextPaint textPaint;
     /**
      * 背面画笔
      */
@@ -70,14 +73,32 @@ public class BookPageView extends View {
      */
     private Path cPath;
 
-    private Path bPath;
     /**
      * 每次按下的位置
      */
     private float touchDownX, touchDownY;
 
-
+String paintText = "1.需要分行的字符串\n" +
+        "\n" +
+        "2.需要分行的字符串从第几的位置开始\n" +
+        "\n" +
+        "3.需要分行的字符串到哪里结束\n" +
+        "\n" +
+        "4.画笔对象\n" +
+        "\n" +
+        "5.layout的宽度，字符串超出宽度时自动换行。\n" +
+        "\n" +
+        "6.layout的对其方式，有ALIGN_CENTER， ALIGN_NORMAL， ALIGN_OPPOSITE 三种。\n" +
+        "\n" +
+        "7.相对行间距，相对字体大小，1.5f表示行间距为1.5倍的字体高度。\n" +
+        "\n" +
+        "8.在基础行距上添加多少\n" +
+        "\n" +
+        "实际行间距等于这两者的和。";
     private Bitmap bitmap;
+    private Bitmap bitmapB;
+    private Bitmap bitmapC;
+
     public BookPageView(Context context) {
         this(context, null);
     }
@@ -93,15 +114,14 @@ public class BookPageView extends View {
 
     private void init() {
         bitmap = BitmapFactory.decodeResource(getContext().getResources(), R.drawable.bg_pager);
-
-        aPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        //aPaint.setColor(Color.GREEN);
+        bitmapB = BitmapFactory.decodeResource(getContext().getResources(), R.drawable.bg_pager);
+        bitmapC = BitmapFactory.decodeResource(getContext().getResources(), R.drawable.zhouyue);
+        textPaint = new TextPaint(Paint.ANTI_ALIAS_FLAG);
         bPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        bPaint.setColor(Color.BLUE);
+        bPaint.setColor(Color.GREEN);
+       // bPaint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.SRC));
         cPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        cPaint.setColor(Color.YELLOW);
         aPath = new Path();
-        bPath = new Path();
         cPath = new Path();
 
         setLayerType(View.LAYER_TYPE_SOFTWARE, null);
@@ -112,6 +132,20 @@ public class BookPageView extends View {
         super.onSizeChanged(w, h, oldw, oldh);
         screenWidth = w;
         screenHeight = h;
+
+
+        initBitmap();
+    }
+
+    private void initBitmap() {
+        bitmap = BitmapUtil.scaleBitmap(bitmap, screenWidth, screenHeight);
+        bitmapB = BitmapUtil.scaleBitmap(bitmapB, screenWidth, screenHeight);
+        bitmapC = BitmapUtil.scaleBitmap(bitmapC, screenWidth, screenHeight);
+
+        Canvas canvas = new Canvas(bitmap);
+        StaticLayout staticLayout = new StaticLayout(paintText,textPaint,screenWidth, Layout.Alignment.ALIGN_NORMAL, 1, 0, true);
+        canvas.translate(20, 0);
+        staticLayout.draw(canvas);
     }
 
     @Override
@@ -130,29 +164,29 @@ public class BookPageView extends View {
             case MotionEvent.ACTION_UP:
                 switch (currentArea) {
                     case TOP_LEFT:
-                        if (event.getRawX() > screenWidth * 1/ 3 || event.getRawY() > screenHeight * 1 / 3){
-                            otherAnimation(event.getRawX(), event.getRawY(),2*screenWidth,0);
-                        }else {
+                        if (event.getRawX() > screenWidth * 1 / 3 || event.getRawY() > screenHeight * 1 / 3) {
+                            otherAnimation(event.getRawX(), event.getRawY(), 2 * screenWidth, 0);
+                        } else {
                             resumeAnimation(event.getRawX(), event.getRawY());
                         }
                         break;
                     case TOP_RIGHT:
-                        if (event.getRawX() < screenWidth * 2 / 3 || event.getRawY() > screenHeight * 1 / 3){
-                            otherAnimation(event.getRawX(), event.getRawY(),-screenWidth,0);
-                        }else {
+                        if (event.getRawX() < screenWidth * 2 / 3 || event.getRawY() > screenHeight * 1 / 3) {
+                            otherAnimation(event.getRawX(), event.getRawY(), -screenWidth, 0);
+                        } else {
                             resumeAnimation(event.getRawX(), event.getRawY());
                         }
                         break;
                     case BOTTOM_LEFT:
-                        if (event.getRawX() > screenWidth * 1 / 3 || event.getRawY() < screenHeight * 2 / 3){
-                            otherAnimation(event.getRawX(), event.getRawY(),2*screenWidth,screenHeight);
-                        }else {
+                        if (event.getRawX() > screenWidth * 1 / 3 || event.getRawY() < screenHeight * 2 / 3) {
+                            otherAnimation(event.getRawX(), event.getRawY(), 2 * screenWidth, screenHeight);
+                        } else {
                             resumeAnimation(event.getRawX(), event.getRawY());
                         }
                         break;
                     case BOTTOM_RIGHT:
                         if (event.getRawX() < screenWidth * 2 / 3 || event.getRawY() < screenHeight * 2 / 3) { //翻页
-                            otherAnimation(event.getRawX(), event.getRawY(),-screenWidth,screenHeight);
+                            otherAnimation(event.getRawX(), event.getRawY(), -screenWidth, screenHeight);
                         } else { //不翻页，恢复
                             resumeAnimation(event.getRawX(), event.getRawY());
                         }
@@ -223,7 +257,7 @@ public class BookPageView extends View {
             @Override
             public void onAnimationUpdate(ValueAnimator animation) {
                 aX = (float) animation.getAnimatedValue();
-                aY =  aX * k + b;
+                aY = aX * k + b;
                 invalidate();
             }
         });
@@ -233,11 +267,12 @@ public class BookPageView extends View {
 
     /**
      * 翻页动画
+     *
      * @param rawX
      * @param rawY
      * @param destinationX
      */
-    private void otherAnimation(float rawX, float rawY, float destinationX,float destinationY) {
+    private void otherAnimation(float rawX, float rawY, float destinationX, float destinationY) {
         //y=kx+b;
         final float k = (destinationY - rawY) / (destinationX - rawX);
         final float b = destinationY - k * (destinationX);
@@ -249,7 +284,7 @@ public class BookPageView extends View {
             @Override
             public void onAnimationUpdate(ValueAnimator animation) {
                 aX = (float) animation.getAnimatedValue();
-                aY =  aX * k + b;
+                aY = aX * k + b;
                 invalidate();
             }
         });
@@ -258,8 +293,6 @@ public class BookPageView extends View {
 
     @Override
     protected void onDraw(Canvas canvas) {
-
-        canvas.drawBitmap(bitmap, 0, 0, aPaint);
         //g点
         gX = (aX + fX) / 2;
         gY = (aY + fY) / 2;
@@ -306,34 +339,36 @@ public class BookPageView extends View {
 //        Log.e("坐标", "D:x=" + dX + "y=" + dY);
 //        Log.e("坐标", "I:x=" + iX + "y=" + iY);
 
+        canvas.drawBitmap(bitmap, 0, 0, null);
+        //使用离屏绘制
 
         switch (currentArea) {
             case BOTTOM_RIGHT:
-                pathB(canvas);
-                pathC(canvas);
-                pathAFromLowerRight(canvas);
+                drawContentB(canvas);
+                //drawContentC(canvas,pathC());
+                drawContentA(canvas, pathAFromLowerRight());
+                canvas.drawPath(pathAFromLowerRight(),bPaint);
                 break;
             case BOTTOM_LEFT:
-                pathB(canvas);
-                pathC(canvas);
-                pathAFromLowerLeft(canvas);
+                drawContentB(canvas);
+                drawContentC(canvas,pathC());
+                drawContentA(canvas, pathAFromLowerLeft());
                 break;
             case TOP_LEFT:
-                pathB(canvas);
-                pathC(canvas);
-                pathAFromTopLeft(canvas);
+                drawContentB(canvas);
+                drawContentC(canvas,pathC());
+                drawContentA(canvas, pathAFromTopLeft());
                 break;
             case TOP_RIGHT:
-                pathB(canvas);
-                pathC(canvas);
-                pathAFromTopRight(canvas);
+                drawContentB(canvas);
+                drawContentC(canvas,pathC());
+                drawContentA(canvas, pathAFromTopRight());
                 break;
         }
 
-
     }
 
-    private void pathAFromLowerRight(Canvas canvas) {
+    private Path pathAFromLowerRight() {
         aPath.reset();
         aPath.lineTo(0, screenHeight);
         aPath.lineTo(cX, cY);
@@ -343,10 +378,10 @@ public class BookPageView extends View {
         aPath.quadTo(hX, hY, jX, jY);
         aPath.lineTo(screenWidth, 0);
         aPath.close();
-        canvas.drawPath(aPath, aPaint);
+        return aPath;
     }
 
-    private void pathAFromLowerLeft(Canvas canvas) {
+    private Path pathAFromLowerLeft() {
         aPath.reset();
         aPath.lineTo(jX, jY);
         aPath.quadTo(hX, hY, kX, kY);
@@ -356,10 +391,10 @@ public class BookPageView extends View {
         aPath.lineTo(screenWidth, screenHeight);
         aPath.lineTo(screenWidth, 0);
         aPath.close();
-        canvas.drawPath(aPath, aPaint);
+        return aPath;
     }
 
-    private void pathAFromTopRight(Canvas canvas) {
+    private Path pathAFromTopRight() {
         aPath.reset();
         aPath.lineTo(cX, cY);
         aPath.quadTo(eX, eY, bX, bY);
@@ -369,10 +404,10 @@ public class BookPageView extends View {
         aPath.lineTo(screenWidth, screenHeight);
         aPath.lineTo(0, screenHeight);
         aPath.close();
-        canvas.drawPath(aPath, aPaint);
+        return aPath;
     }
 
-    private void pathAFromTopLeft(Canvas canvas) {
+    private Path pathAFromTopLeft() {
         aPath.reset();
         aPath.moveTo(cX, cY);
         aPath.quadTo(eX, eY, bX, bY);
@@ -383,13 +418,10 @@ public class BookPageView extends View {
         aPath.lineTo(screenWidth, screenHeight);
         aPath.lineTo(screenWidth, 0);
         aPath.close();
-        canvas.drawPath(aPath, aPaint);
-
-       // aPaint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.SRC_IN));
-        canvas.drawBitmap(bitmap, 0, 0, aPaint);
+        return aPath;
     }
 
-    private void pathC(Canvas canvas) {
+    private Path pathC() {
         cPath.reset();
         cPath.moveTo(iX, iY);
         cPath.lineTo(dX, dY);
@@ -397,15 +429,18 @@ public class BookPageView extends View {
         cPath.lineTo(aX, aY);
         cPath.lineTo(kX, kY);
         cPath.close();
-        canvas.drawPath(cPath, cPaint);
+        return cPath;
+    }
+    private void drawContentC(Canvas canvas,Path path) {
+        canvas.clipPath(path, Region.Op.INTERSECT);
+        canvas.drawBitmap(bitmapC, 0, 0, null);
     }
 
-    private void pathB(Canvas canvas){
-        bPath.reset();
-        bPath.lineTo(0,screenHeight);
-        bPath.lineTo(screenWidth,screenHeight);
-        bPath.lineTo(screenWidth,0);
-        bPath.close();
-        canvas.drawPath(bPath,bPaint);
+    private void drawContentA(Canvas canvas, Path path) {
+        canvas.clipPath(path, Region.Op.INTERSECT);
+        canvas.drawBitmap(bitmap, 0, 0, null);
+    }
+    private void drawContentB(Canvas canvas) {
+        //canvas.drawBitmap(bitmapB, 0, 0, null);
     }
 }
