@@ -65,11 +65,15 @@ public class BookPageView extends View {
     private int screenHeight;
 
     /**
-     * 正面路径
+     * A面路径
      */
     private Path aPath;
     /**
-     * 反面路径
+     * B面路径
+     */
+    private Path bPath;
+    /**
+     * c面路径
      */
     private Path cPath;
 
@@ -114,14 +118,14 @@ String paintText = "1.需要分行的字符串\n" +
 
     private void init() {
         bitmap = BitmapFactory.decodeResource(getContext().getResources(), R.drawable.bg_pager);
-        bitmapB = BitmapFactory.decodeResource(getContext().getResources(), R.drawable.bg_pager);
+        bitmapB = BitmapFactory.decodeResource(getContext().getResources(), R.drawable.wr);
         bitmapC = BitmapFactory.decodeResource(getContext().getResources(), R.drawable.zhouyue);
         textPaint = new TextPaint(Paint.ANTI_ALIAS_FLAG);
         bPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        bPaint.setColor(Color.GREEN);
-       // bPaint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.SRC));
+        bPaint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.DST_ATOP));
         cPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         aPath = new Path();
+        bPath = new Path();
         cPath = new Path();
 
         setLayerType(View.LAYER_TYPE_SOFTWARE, null);
@@ -344,23 +348,22 @@ String paintText = "1.需要分行的字符串\n" +
 
         switch (currentArea) {
             case BOTTOM_RIGHT:
-                drawContentB(canvas);
-                //drawContentC(canvas,pathC());
+                drawContentB(canvas,pathAFromLowerRight());
+                drawContentC(canvas,pathC());
                 drawContentA(canvas, pathAFromLowerRight());
-                canvas.drawPath(pathAFromLowerRight(),bPaint);
                 break;
             case BOTTOM_LEFT:
-                drawContentB(canvas);
+                drawContentB(canvas,pathAFromLowerLeft());
                 drawContentC(canvas,pathC());
                 drawContentA(canvas, pathAFromLowerLeft());
                 break;
             case TOP_LEFT:
-                drawContentB(canvas);
+                drawContentB(canvas,pathAFromTopLeft());
                 drawContentC(canvas,pathC());
                 drawContentA(canvas, pathAFromTopLeft());
                 break;
             case TOP_RIGHT:
-                drawContentB(canvas);
+                drawContentB(canvas,pathAFromTopRight());
                 drawContentC(canvas,pathC());
                 drawContentA(canvas, pathAFromTopRight());
                 break;
@@ -421,6 +424,15 @@ String paintText = "1.需要分行的字符串\n" +
         return aPath;
     }
 
+    private Path pathB(){
+        bPath.reset();
+        bPath.lineTo(0,screenHeight);
+        bPath.lineTo(screenWidth,screenHeight);
+        bPath.lineTo(screenWidth,0);
+        bPath.close();
+        return bPath;
+    }
+
     private Path pathC() {
         cPath.reset();
         cPath.moveTo(iX, iY);
@@ -432,7 +444,7 @@ String paintText = "1.需要分行的字符串\n" +
         return cPath;
     }
     private void drawContentC(Canvas canvas,Path path) {
-        canvas.clipPath(path, Region.Op.INTERSECT);
+        canvas.clipPath(path,Region.Op.REVERSE_DIFFERENCE);
         canvas.drawBitmap(bitmapC, 0, 0, null);
     }
 
@@ -440,7 +452,10 @@ String paintText = "1.需要分行的字符串\n" +
         canvas.clipPath(path, Region.Op.INTERSECT);
         canvas.drawBitmap(bitmap, 0, 0, null);
     }
-    private void drawContentB(Canvas canvas) {
-        //canvas.drawBitmap(bitmapB, 0, 0, null);
+    private void drawContentB(Canvas canvas,Path path) {
+        canvas.clipPath(path);
+        canvas.clipPath(pathC(), Region.Op.UNION);
+        canvas.clipPath(pathB(), Region.Op.REVERSE_DIFFERENCE);
+        canvas.drawBitmap(bitmapB, 0, 0, null);
     }
 }
