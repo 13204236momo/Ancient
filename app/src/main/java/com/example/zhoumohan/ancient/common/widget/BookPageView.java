@@ -8,9 +8,8 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Path;
-import android.graphics.PorterDuff;
-import android.graphics.PorterDuffXfermode;
 import android.graphics.Region;
+import android.graphics.drawable.GradientDrawable;
 import android.support.annotation.Nullable;
 import android.text.Layout;
 import android.text.StaticLayout;
@@ -44,14 +43,6 @@ public class BookPageView extends View {
      * 文字画笔
      */
     private TextPaint textPaint;
-    /**
-     * 背面画笔
-     */
-    private Paint cPaint;
-    /**
-     * 下一页画笔
-     */
-    private Paint bPaint;
 
     /**
      * 关键点，a(x,y)为触摸点（页角点）
@@ -82,23 +73,89 @@ public class BookPageView extends View {
      */
     private float touchDownX, touchDownY;
 
-String paintText = "1.需要分行的字符串\n" +
-        "\n" +
-        "2.需要分行的字符串从第几的位置开始\n" +
-        "\n" +
-        "3.需要分行的字符串到哪里结束\n" +
-        "\n" +
-        "4.画笔对象\n" +
-        "\n" +
-        "5.layout的宽度，字符串超出宽度时自动换行。\n" +
-        "\n" +
-        "6.layout的对其方式，有ALIGN_CENTER， ALIGN_NORMAL， ALIGN_OPPOSITE 三种。\n" +
-        "\n" +
-        "7.相对行间距，相对字体大小，1.5f表示行间距为1.5倍的字体高度。\n" +
-        "\n" +
-        "8.在基础行距上添加多少\n" +
-        "\n" +
-        "实际行间距等于这两者的和。";
+    private Paint strokePaint;
+
+    /**
+     * 顶部翻页A区左侧阴影
+     */
+    private GradientDrawable gradientDrawableATopLeft;
+    /**
+     * 底部翻页A区左侧阴影
+     */
+    private GradientDrawable gradientDrawableABottomLeft;
+    /**
+     * 顶部翻页A区右侧阴影
+     */
+    private GradientDrawable gradientDrawableATopRight;
+    /**
+     * 底部翻页A区右侧阴影
+     */
+    private GradientDrawable gradientDrawableABottomRight;
+    /**
+     * 水平翻页A区阴影
+     */
+    private GradientDrawable gradientDrawableAHorizontal;
+    /**
+     * 顶部翻页B区阴影
+     */
+    private GradientDrawable gradientDrawableBTop;
+    /**
+     * 底部翻页B区阴影
+     */
+    private GradientDrawable gradientDrawableBBottom;
+    /**
+     * 顶部翻页C区阴影
+     */
+    private GradientDrawable gradientDrawableCTop;
+    /**
+     * 底部翻页C区阴影
+     */
+    private GradientDrawable gradientDrawableCBottom;
+
+    private float lPathAShadowDis = 0;//A区域左阴影矩形短边长度参考值
+    private float rPathAShadowDis = 0;//A区域右阴影矩形短边长度参考值
+
+    String paintText = "1.需要分行的字符串\n" +
+            "\n" +
+            "2.需要分行的字符串从第几的位置开始\n" +
+            "\n" +
+            "3.需要分行的字符串到哪里结束\n" +
+            "\n" +
+            "4.画笔对象\n" +
+            "\n" +
+            "5.layout的宽度，字符串超出宽度时自动换行。\n" +
+            "\n" +
+            "6.layout的对其方式，有ALIGN_CENTER， ALIGN_NORMAL， ALIGN_OPPOSITE 三种。\n" +
+            "\n" +
+            "7.相对行间距，相对字体大小，1.5f表示行间距为1.5倍的字体高度。\n" +
+            "\n" +
+            "8.在基础行距上添加多少\n" +
+            "\n" +
+            "实际行间距等于这两者的和。" +
+            "1.需要分行的字符串\n" +
+            "\n" +
+            "2.需要分行的字符串从第几的位置开始\n" +
+            "\n" +
+            "3.需要分行的字符串到哪里结束\n" +
+            "\n" +
+            "4.画笔对象\n" +
+            "\n" +
+            "5.layout的宽度，字符串超出宽度时自动换行。\n" +
+            "\n" +
+            "6.layout的对其方式，有ALIGN_CENTER， ALIGN_NORMAL， ALIGN_OPPOSITE 三种。\n" +
+            "\n" +
+            "7.相对行间距，相对字体大小，1.5f表示行间距为1.5倍的字体高度。\n" +
+            "\n" +
+            "8.在基础行距上添加多少\n" +
+            "\n" +
+            "实际行间距等于这两者的和。";
+    private String paintText1 = "几个月前，晚上梦到在研究翻页动画，次日上班居然想起了昨天晚上的梦。search了相关信息，大概要用到数学计算、canvas绘图等相关内容。对我来说手动绘图这方面的实践还是0，想想短时间内应该搞不定，便将此事记在了待做清单内。（公司电脑一个单子，自己Mac一个单子，增加行数的速度远比删除的速度快。）\n" +
+            "十一长假前夕手头没什么事情，看着清单顶部的第一项（时间排序），便照着例文开始绘图。画到后面，想想就一张图片多无聊。算了！加点功能做个带翻页动画的阅读器吧\n" +
+            "\n" +
+            "作者：s1991721\n" +
+            "链接：https://www.jianshu.com/p/b3f744370a02\n" +
+            "来源：简书\n" +
+            "简书著作权归作者所有，任何形式的转载都请联系作者获得授权并注明出处。";
     private Bitmap bitmap;
     private Bitmap bitmapB;
     private Bitmap bitmapC;
@@ -117,27 +174,74 @@ String paintText = "1.需要分行的字符串\n" +
     }
 
     private void init() {
-        bitmap = BitmapFactory.decodeResource(getContext().getResources(), R.drawable.bg_pager);
-        bitmapB = BitmapFactory.decodeResource(getContext().getResources(), R.drawable.wr);
-        bitmapC = BitmapFactory.decodeResource(getContext().getResources(), R.drawable.zhouyue);
+        bitmap = BitmapFactory.decodeResource(getContext()   .getResources(), R.drawable.bg_pager);
+        bitmapB = BitmapFactory.decodeResource(getContext().getResources(), R.drawable.bg_pager);
+        bitmapC = BitmapFactory.decodeResource(getContext().getResources(), R.drawable.bg_pager_1);
         textPaint = new TextPaint(Paint.ANTI_ALIAS_FLAG);
-        bPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        bPaint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.DST_ATOP));
-        cPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        textPaint.setTextSize(40);
+        strokePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        strokePaint.setColor(Color.GREEN);
+        //strokePaint.setShadowLayer(10f, 50f, 50f, Color.GREEN);
         aPath = new Path();
         bPath = new Path();
         cPath = new Path();
 
+        initGradient();
         setLayerType(View.LAYER_TYPE_SOFTWARE, null);
     }
+
+    /**
+     * 初始化阴影
+     */
+    private void initGradient() {
+        int deepColor = 0x55333333;
+        int lightColor = 0x01333333;
+        int[] gradientColors = new int[]{lightColor, deepColor};
+
+        gradientDrawableATopLeft = new GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT, gradientColors);
+        gradientDrawableATopLeft.setGradientType(GradientDrawable.LINEAR_GRADIENT);
+
+        gradientDrawableABottomLeft = new GradientDrawable(GradientDrawable.Orientation.RIGHT_LEFT, gradientColors);
+        gradientDrawableABottomLeft.setGradientType(GradientDrawable.LINEAR_GRADIENT);
+
+        deepColor = 0x55333333;
+        lightColor = 0x01333333;
+        gradientColors = new int[]{lightColor, lightColor, lightColor, deepColor};
+        gradientDrawableATopRight = new GradientDrawable(GradientDrawable.Orientation.TOP_BOTTOM, gradientColors);
+        gradientDrawableATopRight.setGradientType(GradientDrawable.LINEAR_GRADIENT);
+
+        gradientDrawableABottomRight = new GradientDrawable(GradientDrawable.Orientation.BOTTOM_TOP, gradientColors);
+        gradientDrawableABottomRight.setGradientType(GradientDrawable.LINEAR_GRADIENT);
+
+        deepColor = 0x55333333;
+        lightColor = 0x01333333;
+        gradientColors = new int[]{lightColor, deepColor};
+        gradientDrawableAHorizontal = new GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT, gradientColors);
+        gradientDrawableAHorizontal.setGradientType(GradientDrawable.LINEAR_GRADIENT);
+
+        deepColor = 0x55333333;
+        lightColor = 0x01111111;
+        gradientColors = new int[]{deepColor, lightColor};
+        gradientDrawableBTop = new GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT, gradientColors);
+        gradientDrawableBTop.setGradientType(GradientDrawable.LINEAR_GRADIENT);
+        gradientDrawableBBottom = new GradientDrawable(GradientDrawable.Orientation.RIGHT_LEFT, gradientColors);
+        gradientDrawableBBottom.setGradientType(GradientDrawable.LINEAR_GRADIENT);
+
+        deepColor = 0x22333333;
+        lightColor = 0x00333333;
+        gradientColors = new int[]{lightColor, deepColor};
+        gradientDrawableCTop = new GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT, gradientColors);
+        gradientDrawableCTop.setGradientType(GradientDrawable.LINEAR_GRADIENT);
+        gradientDrawableCBottom = new GradientDrawable(GradientDrawable.Orientation.RIGHT_LEFT, gradientColors);
+        gradientDrawableCBottom.setGradientType(GradientDrawable.LINEAR_GRADIENT);
+    }
+
 
     @Override
     protected void onSizeChanged(int w, int h, int oldw, int oldh) {
         super.onSizeChanged(w, h, oldw, oldh);
         screenWidth = w;
         screenHeight = h;
-
-
         initBitmap();
     }
 
@@ -147,9 +251,14 @@ String paintText = "1.需要分行的字符串\n" +
         bitmapC = BitmapUtil.scaleBitmap(bitmapC, screenWidth, screenHeight);
 
         Canvas canvas = new Canvas(bitmap);
-        StaticLayout staticLayout = new StaticLayout(paintText,textPaint,screenWidth, Layout.Alignment.ALIGN_NORMAL, 1, 0, true);
+        StaticLayout staticLayout = new StaticLayout(paintText, textPaint, screenWidth, Layout.Alignment.ALIGN_NORMAL, 1, 0, true);
         canvas.translate(20, 0);
         staticLayout.draw(canvas);
+
+        Canvas canvas1 = new Canvas(bitmapB);
+        StaticLayout staticLayout1 = new StaticLayout(paintText1, textPaint, screenWidth, Layout.Alignment.ALIGN_NORMAL, 1, 0, true);
+        canvas1.translate(20, 0);
+        staticLayout1.draw(canvas1);
     }
 
     @Override
@@ -330,6 +439,16 @@ String paintText = "1.需要分行的字符串\n" +
         iX = ((jX + kX) / 2 + hX) / 2;
         iY = ((jY + kY) / 2 + hY) / 2;
 
+        float lA = aY - eY;
+        float lB = eX - aX;
+        float lC = aX * eY - eX * aY;
+        lPathAShadowDis = Math.abs((lA * dX + lB * dY + lC) / (float) Math.hypot(lA, lB));
+
+        float rA = aY - hY;
+        float rB = hX - aX;
+        float rC = aX * hY - hX * aY;
+        rPathAShadowDis = Math.abs((rA * iX + rB * iY + rC) / (float) Math.hypot(rA, rB));
+
 //        Log.e("坐标", "A:x=" + aX + "y=" + aY);
 //        Log.e("坐标", "F:x=" + fX + "y=" + fY);
 //        Log.e("坐标", "G:x=" + gX + "y=" + gY);
@@ -348,23 +467,23 @@ String paintText = "1.需要分行的字符串\n" +
 
         switch (currentArea) {
             case BOTTOM_RIGHT:
-                drawContentB(canvas,pathAFromLowerRight());
-                drawContentC(canvas,pathC());
+                drawContentB(canvas, pathAFromLowerRight());
+                drawContentC(canvas, pathAFromLowerRight());
                 drawContentA(canvas, pathAFromLowerRight());
                 break;
             case BOTTOM_LEFT:
-                drawContentB(canvas,pathAFromLowerLeft());
-                drawContentC(canvas,pathC());
+                drawContentB(canvas, pathAFromLowerLeft());
+                drawContentC(canvas, pathAFromLowerLeft());
                 drawContentA(canvas, pathAFromLowerLeft());
                 break;
             case TOP_LEFT:
-                drawContentB(canvas,pathAFromTopLeft());
-                drawContentC(canvas,pathC());
+                drawContentB(canvas, pathAFromTopLeft());
+                drawContentC(canvas, pathAFromTopLeft());
                 drawContentA(canvas, pathAFromTopLeft());
                 break;
             case TOP_RIGHT:
-                drawContentB(canvas,pathAFromTopRight());
-                drawContentC(canvas,pathC());
+                drawContentB(canvas, pathAFromTopRight());
+                drawContentC(canvas, pathAFromTopRight());
                 drawContentA(canvas, pathAFromTopRight());
                 break;
         }
@@ -424,11 +543,11 @@ String paintText = "1.需要分行的字符串\n" +
         return aPath;
     }
 
-    private Path pathB(){
+    private Path pathB() {
         bPath.reset();
-        bPath.lineTo(0,screenHeight);
-        bPath.lineTo(screenWidth,screenHeight);
-        bPath.lineTo(screenWidth,0);
+        bPath.lineTo(0, screenHeight);
+        bPath.lineTo(screenWidth, screenHeight);
+        bPath.lineTo(screenWidth, 0);
         bPath.close();
         return bPath;
     }
@@ -443,19 +562,171 @@ String paintText = "1.需要分行的字符串\n" +
         cPath.close();
         return cPath;
     }
-    private void drawContentC(Canvas canvas,Path path) {
-        canvas.clipPath(path,Region.Op.REVERSE_DIFFERENCE);
+
+    private void drawContentC(Canvas canvas, Path path) {
+        canvas.save();
+        canvas.clipPath(path);
+        canvas.clipPath(pathC(), Region.Op.REVERSE_DIFFERENCE);
         canvas.drawBitmap(bitmapC, 0, 0, null);
+        canvas.restore();
+        //drawPathCShadow(canvas);
     }
 
     private void drawContentA(Canvas canvas, Path path) {
+        canvas.save();
         canvas.clipPath(path, Region.Op.INTERSECT);
         canvas.drawBitmap(bitmap, 0, 0, null);
+        canvas.restore();
+        drawPathALeftShadow(canvas);
+        drawPathARightShadow(canvas);
     }
-    private void drawContentB(Canvas canvas,Path path) {
+
+    private void drawContentB(Canvas canvas, Path path) {
+        canvas.save();
         canvas.clipPath(path);
         canvas.clipPath(pathC(), Region.Op.UNION);
         canvas.clipPath(pathB(), Region.Op.REVERSE_DIFFERENCE);
         canvas.drawBitmap(bitmapB, 0, 0, null);
+        canvas.restore();
+        drawPathBShadow(canvas);
     }
+
+
+    //A区左侧
+    private void drawPathALeftShadow(Canvas canvas) {
+        canvas.save();
+        int left;
+        int right;
+        int top = (int) eY;
+        int bottom = (int) (eY + screenHeight);
+        GradientDrawable gradientDrawable;
+        if (currentArea == TOP_RIGHT) {
+            gradientDrawable = gradientDrawableATopLeft;
+            left = (int) (eX - lPathAShadowDis / 2);
+            right = (int) (eX);
+        } else {
+            gradientDrawable = gradientDrawableABottomLeft;
+            left = (int) (eX);
+            right = (int) (eX + lPathAShadowDis / 2);
+        }
+        gradientDrawable.setBounds(left, top, right, bottom);
+
+        //裁剪出我们需要的区域
+        Path mPath = new Path();
+        mPath.moveTo(aX - Math.max(rPathAShadowDis, lPathAShadowDis) / 2, aY);
+        mPath.lineTo(dX, dY);
+        mPath.lineTo(eX, eY);
+        mPath.lineTo(aX, aY);
+        mPath.close();
+        canvas.clipPath(aPath);
+        canvas.clipPath(mPath, Region.Op.INTERSECT);
+
+        float mDegrees = (float) Math.toDegrees(Math.atan2(eX - aX, aY - eY));
+        canvas.rotate(mDegrees, eX, eY);
+        gradientDrawable.draw(canvas);
+        canvas.restore();
+    }
+
+    //A区右侧
+    private void drawPathARightShadow(Canvas canvas) {
+        canvas.save();
+        float viewDiagonalLength = (float) Math.hypot(screenWidth, screenHeight);//view对角线长度
+        int left = (int) hX;
+        int right = (int) (hX + viewDiagonalLength * 10);//需要足够长的长度
+        int top;
+        int bottom;
+
+        GradientDrawable gradientDrawable;
+        if (currentArea == TOP_RIGHT) {
+            gradientDrawable = gradientDrawableATopRight;
+            top = (int) (hY - rPathAShadowDis / 2);
+            bottom = (int) hY;
+        } else {
+            gradientDrawable = gradientDrawableABottomRight;
+            top = (int) hY;
+            bottom = (int) (hY + rPathAShadowDis / 2);
+        }
+        gradientDrawable.setBounds(left, top, right, bottom);
+        //裁剪出我们需要的区域
+        Path mPath = new Path();
+        mPath.moveTo(aX - Math.max(rPathAShadowDis, lPathAShadowDis) / 2, aY);
+        mPath.lineTo(hX, hY);
+        mPath.lineTo(aX, aY);
+        mPath.close();
+        canvas.clipPath(aPath);
+        canvas.clipPath(mPath, Region.Op.INTERSECT);
+        //canvas.drawPath(mPath,strokePaint);
+
+        float mDegrees = (float) Math.toDegrees(Math.atan2(aY - hY, aX - hX));
+        canvas.rotate(mDegrees, hX, hY);
+        gradientDrawable.draw(canvas);
+        canvas.restore();
+    }
+
+    //绘制投在B区域的阴影
+    private void drawPathBShadow(Canvas canvas) {
+        canvas.save();
+        int deepOffset = 0;
+        int lightOffset = 0;
+
+        float aTof = (float) Math.hypot((aX - fX), (aY - fY));
+        float viewDiagonalLength = (float) Math.hypot(screenWidth, screenHeight);
+
+        int left;
+        int right;
+        int top = (int) cY;
+        int bottom = (int) (viewDiagonalLength + top);
+
+        GradientDrawable gradientDrawable;
+
+        if (currentArea == TOP_RIGHT) {
+            gradientDrawable = gradientDrawableBTop;
+
+            left = (int) (cX - deepOffset);
+            right = (int) (cX + aTof / 4 + lightOffset);
+        } else {
+            gradientDrawable = gradientDrawableBBottom;
+
+            left = (int) (cX - aTof / 4 - lightOffset);
+            right = (int) (cX + deepOffset);
+        }
+        gradientDrawable.setBounds(left, top, right, bottom);
+
+        float rotateDegrees = (float) Math.toDegrees(Math.atan2(eX - fX, hY - fY));
+        canvas.rotate(rotateDegrees, cX, cY);
+        gradientDrawable.draw(canvas);
+        canvas.restore();
+    }
+
+
+    //绘制投在C区域的阴影
+    private void drawPathCShadow(Canvas canvas) {
+        canvas.save();
+        int deepOffset = 1;//深色端的偏移值
+        int lightOffset = -30;//浅色端的偏移值
+        float viewDiagonalLength = (float) Math.hypot(screenWidth, screenHeight);//view对角线长度
+        int midpoint_ce = (int) (cX + eX) / 2;//ce中点
+        int midpoint_jh = (int) (jY + hY) / 2;//jh中点
+        float minDisToControlPoint = Math.min(Math.abs(midpoint_ce - eX), Math.abs(midpoint_jh - hY));//中点到控制点的最小值
+        int left;
+        int right;
+        int top = (int) cY;
+        int bottom = (int) (viewDiagonalLength + cY);
+        GradientDrawable gradientDrawable;
+        if (currentArea == TOP_RIGHT) {
+            gradientDrawable = gradientDrawableCTop;
+            left = (int) (cX - lightOffset);
+            right = (int) (cX + minDisToControlPoint + deepOffset);
+        } else {
+            gradientDrawable = gradientDrawableCBottom;
+            left = (int) (cX - minDisToControlPoint - deepOffset);
+            right = (int) (cX + lightOffset);
+        }
+        gradientDrawable.setBounds(left, top, right, bottom);
+        float mDegrees = (float) Math.toDegrees(Math.atan2(eX - fX, hY - fY));
+        canvas.rotate(mDegrees, cX, cY);
+        gradientDrawable.draw(canvas);
+        canvas.restore();
+    }
+
 }
