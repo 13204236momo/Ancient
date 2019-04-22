@@ -23,7 +23,11 @@ import android.view.animation.AccelerateInterpolator;
 import com.example.zhoumohan.ancient.R;
 import com.example.zhoumohan.ancient.util.BitmapUtil;
 
+/**
+ * 设计图pageview，这个图片
+ */
 public class BookPageView extends View {
+
 
     private static final int TOP_LEFT = 0;
     private static final int TOP_MIDDLE = 1;
@@ -345,9 +349,9 @@ String paintText = "1.需要分行的字符串\n" +
         switch (currentArea) {
             case BOTTOM_RIGHT:
                 drawContentB(canvas);
-                //drawContentC(canvas,pathC());
+                drawContentC(canvas,pathC());
                 drawContentA(canvas, pathAFromLowerRight());
-                canvas.drawPath(pathAFromLowerRight(),bPaint);
+                //canvas.drawPath(pathAFromLowerRight(),bPaint);
                 break;
             case BOTTOM_LEFT:
                 drawContentB(canvas);
