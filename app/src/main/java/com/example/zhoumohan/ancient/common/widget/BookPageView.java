@@ -22,6 +22,9 @@ import android.view.animation.AccelerateInterpolator;
 import com.example.zhoumohan.ancient.R;
 import com.example.zhoumohan.ancient.util.BitmapUtil;
 
+/**
+ * 设计图为pageview这个图片
+ */
 public class BookPageView extends View {
 
     private static final int TOP_LEFT = 0;
@@ -176,7 +179,7 @@ public class BookPageView extends View {
     private void init() {
         bitmap = BitmapFactory.decodeResource(getContext()   .getResources(), R.drawable.bg_pager);
         bitmapB = BitmapFactory.decodeResource(getContext().getResources(), R.drawable.bg_pager);
-        bitmapC = BitmapFactory.decodeResource(getContext().getResources(), R.drawable.bg_pager_1);
+        bitmapC = BitmapFactory.decodeResource(getContext().getResources(), R.drawable.bg_pager1);
         textPaint = new TextPaint(Paint.ANTI_ALIAS_FLAG);
         textPaint.setTextSize(40);
         strokePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
